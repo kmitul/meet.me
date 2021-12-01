@@ -50,7 +50,7 @@ namespace Client.ViewModel
 
             Trace.WriteLine("[UX] Dashboard subscribed to Client Session Manager");
 
-            // Default Setup
+            //// Default Setup
             _chatSummary = "Refresh to get the latest stats!";
             _usersList = new List<int>() { 0 };
             _messagesCountList = new List<int>() { 0 };
@@ -59,14 +59,15 @@ namespace Client.ViewModel
                 DateTime.Now,
             };
 
+            messagesCount = _messagesCountList.AsQueryable().Sum();
+            participantsCount = _usersList.Count;
+            engagementRate = CalculateEngagementRate(_messagesCountList, _usersList);
+
             usersList = new ObservableCollection<string>((IEnumerable<string>)_usersList.ConvertAll(val => new string(val.ToString())));
             messagesCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_messagesCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
             timestampList = new ObservableCollection<string>((IEnumerable<string>)_timestampList.ConvertAll(val => new string(val.ToString("T"))));
             usersCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_usersCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
 
-            messagesCount = _messagesCountList.AsQueryable().Sum();
-            participantsCount = _usersList.Count;
-            engagementRate = CalculateEngagementRate(_messagesCountList, _usersList);
 
             Trace.WriteLine("[UX] Initialized Dashboard Analytics");
         }
@@ -118,14 +119,15 @@ namespace Client.ViewModel
                     _recentlyJoined = _insincereMembers.AsQueryable().Sum();
                 }
 
+                messagesCount = _messagesCountList.AsQueryable().Sum();
+                participantsCount = _usersList.Count;
+                engagementRate = CalculateEngagementRate(_messagesCountList, _usersList);
+
                 usersList = new ObservableCollection<string>((IEnumerable<string>)_usersList.ConvertAll(val => new string(val.ToString())));
                 messagesCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_messagesCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
                 timestampList = new ObservableCollection<string>((IEnumerable<string>)_timestampList.ConvertAll(val => new string(val.ToString("T"))));
                 usersCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_usersCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
 
-                messagesCount = _messagesCountList.AsQueryable().Sum();
-                participantsCount = _usersList.Count;
-                engagementRate = CalculateEngagementRate(_messagesCountList, _usersList);
                 Trace.WriteLine("[UX] Rendered the latest analytics data");
             }
         }
