@@ -26,6 +26,17 @@ namespace Client
         {
             InitializeComponent();
             this.DashboardVM = new DashboardViewModel();
+
+            // Updating when a user requests for the first time
+            this.DashboardVM.UpdateVM();
+            usersVsTimeChart.Series[0].Values = this.DashboardVM.usersCountList;
+            usersVsTimeChart.AxisX[0].Labels = this.DashboardVM.timestampList;
+            usersVsTimeChart.Update();
+
+            usersVsMessagesPlot.AxisX[0].Labels = this.DashboardVM.usersList;
+            usersVsMessagesPlot.Series[0].Values = this.DashboardVM.messagesCountList;
+            usersVsMessagesPlot.Update();
+
             this.DataContext = DashboardVM;
         }
 
