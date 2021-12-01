@@ -68,7 +68,6 @@ namespace Client.ViewModel
             timestampList = new ObservableCollection<string>((IEnumerable<string>)_timestampList.ConvertAll(val => new string(val.ToString("T"))));
             usersCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_usersCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
 
-
             Trace.WriteLine("[UX] Initialized Dashboard Analytics");
         }
 
@@ -95,17 +94,14 @@ namespace Client.ViewModel
                 //Debug.WriteLine("[UX] Obtained the latest summary");
                 Trace.WriteLine("[UX] Obtained the latest summary");
 
-
                 _clientSM.GetAnalytics();
                 //Debug.WriteLine("[UX] Obtained the latest analytics data");
                 Trace.WriteLine("[UX] Obtained the latest analytics data");
 
-                if (_sessionAnalytics.chatCountForEachUser.Count != 0)
-                {
+                if (_sessionAnalytics.chatCountForEachUser.Count != 0) { 
                     _usersList = new List<int>(this._sessionAnalytics.chatCountForEachUser.Keys);
                     _messagesCountList = new List<int>(this._sessionAnalytics.chatCountForEachUser.Values);
                 }
-
 
                 if (_sessionAnalytics.userCountAtAnyTime.Count != 0)
                 {
@@ -113,12 +109,7 @@ namespace Client.ViewModel
                     _usersCountList = new List<int>(this._sessionAnalytics.userCountAtAnyTime.Values);
                 }
 
-                if (_sessionAnalytics.insincereMembers.Count != 0)
-                {
-                    _insincereMembers = _sessionAnalytics.insincereMembers;
-                    _recentlyJoined = _insincereMembers.AsQueryable().Sum();
-                }
-
+                _insincereMembers = _sessionAnalytics.insincereMembers;
                 messagesCount = _messagesCountList.AsQueryable().Sum();
                 participantsCount = _usersList.Count;
                 engagementRate = CalculateEngagementRate(_messagesCountList, _usersList);
@@ -127,7 +118,6 @@ namespace Client.ViewModel
                 messagesCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_messagesCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
                 timestampList = new ObservableCollection<string>((IEnumerable<string>)_timestampList.ConvertAll(val => new string(val.ToString("T"))));
                 usersCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_usersCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
-
                 Trace.WriteLine("[UX] Rendered the latest analytics data");
             }
         }
@@ -180,10 +170,7 @@ namespace Client.ViewModel
         {
             lock (this)
             {
-                if (latestAnalytics != null)
-                    _sessionAnalytics = latestAnalytics;
-                else
-                    Trace.WriteLine("[UX] Null Analytics returned");
+                _sessionAnalytics = latestAnalytics;
             }
         }
 
@@ -191,14 +178,12 @@ namespace Client.ViewModel
         /// Notifies view when property value changes
         /// </summary>
         /// <param name="property">Target Property</param>
-        private void OnPropertyChanged(string property)
+        public void OnPropertyChanged(string property)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-
 
         /// <summary>
         /// Users count list
@@ -288,7 +273,6 @@ namespace Client.ViewModel
 
         private int _messagesCount;
         private int _participantsCount;
-        private int _recentlyJoined;
 
         private IUXClientSessionManager _clientSM;
         private SessionAnalytics _sessionAnalytics;

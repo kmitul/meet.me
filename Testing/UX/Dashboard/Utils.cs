@@ -6,6 +6,7 @@
 /// </summary>
 
 using Dashboard.Server.Telemetry;
+using System;
 
 namespace Testing.UX.Dashboard
 {
@@ -26,7 +27,6 @@ namespace Testing.UX.Dashboard
             {
                 _sampleAnalytics = new();
                 _sampleAnalytics.chatCountForEachUser = new();
-                _sampleAnalytics.chatCountForEachUser.Add(1, 0);
                 return _sampleAnalytics;
             }
             else if (rate == "50%")
@@ -54,6 +54,64 @@ namespace Testing.UX.Dashboard
                 return _sampleAnalytics;
             }
             return null;
+        }
+
+        public static SessionAnalytics GenerateAnalyticsInstance(string instanceType)
+        {
+            _sampleAnalytics = new();
+            if (instanceType == "OnlyUserVsChatCountDict")
+            {
+                _sampleAnalytics.chatCountForEachUser = new();
+                _sampleAnalytics.chatCountForEachUser.Add(1, 5);
+                _sampleAnalytics.chatCountForEachUser.Add(2, 10);
+                _sampleAnalytics.chatCountForEachUser.Add(3, 15);
+
+                return _sampleAnalytics;
+            }
+            else if(instanceType == "OnlyTimestampVsUsersDict")
+            {
+                _sampleAnalytics.userCountAtAnyTime = new();
+                _sampleAnalytics.userCountAtAnyTime.Add(
+                    new DateTime(2021, 12, 1, 5, 10, 00), 5);
+                _sampleAnalytics.userCountAtAnyTime.Add(
+                    new DateTime(2021, 12, 1, 5, 15, 00), 10);
+                _sampleAnalytics.userCountAtAnyTime.Add(
+                    new DateTime(2021, 12, 1, 5, 20, 00), 15);
+
+                return _sampleAnalytics;
+            }
+            else if (instanceType == "OnlyInsincereMembers")
+            {
+                _sampleAnalytics.insincereMembers = new();
+                _sampleAnalytics.insincereMembers.Add(1);
+                _sampleAnalytics.insincereMembers.Add(2);
+                _sampleAnalytics.insincereMembers.Add(3);
+
+                return _sampleAnalytics;
+            }
+            else if(instanceType == "Complete")
+            {
+                _sampleAnalytics.chatCountForEachUser = new();
+                _sampleAnalytics.chatCountForEachUser.Add(1, 5);
+                _sampleAnalytics.chatCountForEachUser.Add(2, 10);
+                _sampleAnalytics.chatCountForEachUser.Add(3, 15);
+
+                _sampleAnalytics.userCountAtAnyTime = new();
+                _sampleAnalytics.userCountAtAnyTime.Add(
+                    new DateTime(2021, 12, 1, 5, 10, 00), 5);
+                _sampleAnalytics.userCountAtAnyTime.Add(
+                    new DateTime(2021, 12, 1, 5, 15, 00), 10);
+                _sampleAnalytics.userCountAtAnyTime.Add(
+                    new DateTime(2021, 12, 1, 5, 20, 00), 15);
+
+                _sampleAnalytics.insincereMembers = new();
+                _sampleAnalytics.insincereMembers.Add(1);
+                _sampleAnalytics.insincereMembers.Add(2);
+                _sampleAnalytics.insincereMembers.Add(3);
+
+                return _sampleAnalytics;
+            }
+            return _sampleAnalytics;
         }
     }
 }

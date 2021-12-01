@@ -12,6 +12,7 @@ using Dashboard.Server.Telemetry;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Testing.UX.Dashboard
 {
@@ -37,7 +38,6 @@ namespace Testing.UX.Dashboard
         [Test]
         public void TestingInitializations()
         {
-            // Assert.AreEqual(expected value, actual value)
             Assert.AreEqual("Refresh to get the latest stats!",
                             _viewModel.chatSummary);
             Assert.AreEqual(1, _viewModel.usersList.Count);
@@ -54,38 +54,27 @@ namespace Testing.UX.Dashboard
         /// Tests the analytics update
         /// </summary>
         [Test]
-        public void OnAnalyticsChanged_ShouldUpdateSessionAnalytics()
+        [TestCase("")]
+        [TestCase("OnlyUserVsChatCountDict")]
+        [TestCase("OnlyTimestampVsUsersDict")]
+        [TestCase("OnlyInsincereMembers")]
+        [TestCase("Complete")]
+        public void OnAnalyticsChanged_ShouldUpdateSessionAnalytics(string instanceType)
         {
             // Arrange
-            SessionAnalytics sampleAnalytics = new();
-            sampleAnalytics.chatCountForEachUser = new();
-            sampleAnalytics.chatCountForEachUser.Add(1, 5);
-            sampleAnalytics.chatCountForEachUser.Add(2, 10);
-            sampleAnalytics.chatCountForEachUser.Add(3, 15);
-
-            sampleAnalytics.userCountAtAnyTime = new();
-            sampleAnalytics.userCountAtAnyTime.Add(
-                new DateTime(2021, 12, 1, 5, 10, 00), 5);
-            sampleAnalytics.userCountAtAnyTime.Add(
-                new DateTime(2021, 12, 1, 5, 15, 00), 10);
-            sampleAnalytics.userCountAtAnyTime.Add(
-                new DateTime(2021, 12, 1, 5, 20, 00), 15);
-
-            sampleAnalytics.insincereMembers = new();
-            sampleAnalytics.insincereMembers.Add(1);
-            sampleAnalytics.insincereMembers.Add(2);
-            sampleAnalytics.insincereMembers.Add(3);
+            _expectedAnalytics = Utils.GenerateAnalyticsInstance(instanceType);
 
             // Act
-            _viewModel.OnAnalyticsChanged(sampleAnalytics);
+            //_viewModel.OnAnalyticsChanged(sampleAnalytics);
+            _viewModel.OnAnalyticsChanged(_expectedAnalytics);
             _sessionAnalytics = _viewModel.GetSessionAnalytics();
 
             // Assert
-            Assert.AreEqual(sampleAnalytics.chatCountForEachUser,
-                            _sessionAnalytics.chatCountForEachUser);
-            Assert.AreEqual(sampleAnalytics.userCountAtAnyTime,
+            Assert.AreEqual(_expectedAnalytics.chatCountForEachUser,
+                _sessionAnalytics.chatCountForEachUser);
+            Assert.AreEqual(_expectedAnalytics.userCountAtAnyTime,
                             _sessionAnalytics.userCountAtAnyTime);
-            Assert.AreEqual(sampleAnalytics.insincereMembers,
+            Assert.AreEqual(_expectedAnalytics.insincereMembers,
                             _sessionAnalytics.insincereMembers);
         }
 
@@ -109,6 +98,7 @@ namespace Testing.UX.Dashboard
         /// </summary>
         /// <param name="expectedRate">Expected engagement rate</param>
         [Test]
+        [TestCase("Initial")]
         [TestCase("0%")]
         [TestCase("50%")]
         [TestCase("67%")]
@@ -127,6 +117,28 @@ namespace Testing.UX.Dashboard
             Assert.AreEqual(expectedRate, _viewModel.CalculateEngagementRate(
                 new List<int>(_sessionAnalytics.chatCountForEachUser.Keys),
                 new List<int>(_sessionAnalytics.chatCountForEachUser.Values)));
+        }
+
+        [Test]
+        public void OnPropertyChanged_ShouldRaiseEvent()
+        {
+            // Arrange
+            List<string> receivedEvents = new();
+            _viewModel.PropertyChanged += delegate (object sender, PropertyChangedEventArgs e)
+            {
+                receivedEvents.Add(e.PropertyName);
+            };
+
+            // Act
+            _viewModel.chatSummary += "New string appended!";
+            _viewModel.messagesCount += 10;
+            _viewModel.participantsCount += 5;
+
+            // Assert
+            Assert.AreEqual(3, receivedEvents.Count);
+            Assert.AreEqual(nameof(_viewModel.chatSummary), receivedEvents[0]);
+            Assert.AreEqual(nameof(_viewModel.messagesCount), receivedEvents[1]);
+            Assert.AreEqual(nameof(_viewModel.participantsCount), receivedEvents[3]);
         }
 
         private DashboardViewModel _viewModel;
