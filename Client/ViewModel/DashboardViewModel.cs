@@ -8,18 +8,18 @@
 ///		that objects are easily managed and presented. 
 /// </summary>
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using LiveCharts;
-using LiveCharts.Defaults;
-using System.ComponentModel;
-using LiveCharts.Helpers;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using Dashboard;
 using Dashboard.Client.SessionManagement;
 using Dashboard.Server.Telemetry;
+using LiveCharts;
+using LiveCharts.Defaults;
+using LiveCharts.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Client.ViewModel
 {
@@ -32,7 +32,8 @@ namespace Client.ViewModel
 
         /// <summary>
         /// Constructs the intial setup
-        /// subscribes to Client Session Manager for summary and telemetry updates
+        /// subscribes to Client Session Manager 
+        /// for summary and telemetry updates
         /// </summary>
         public DashboardViewModel()
         {
@@ -47,8 +48,8 @@ namespace Client.ViewModel
             _clientSM.SummaryCreated += (latestSummary) => OnSummaryChanged(latestSummary);
             _clientSM.AnalyticsCreated += (latestAnalytics) => OnAnalyticsChanged(latestAnalytics);
 
-            //UpdateVM();
-        
+            Trace.WriteLine("[UX] Dashboard subscribed to Client Session Manager");
+
             // Default Setup
             _chatSummary = "Refresh to get the latest stats!";
             _usersList = new List<int>() { 0 };
@@ -65,30 +66,23 @@ namespace Client.ViewModel
 
             messagesCount = _messagesCountList.AsQueryable().Sum();
             participantsCount = _usersList.Count;
-            engagementRate = CalculateEngagementRate();
+            engagementRate = CalculateEngagementRate(_messagesCountList, _usersList);
 
+            Trace.WriteLine("[UX] Initialized Dashboard Analytics");
         }
 
         /// <summary>
-        /// To fetch client session manager for unit testing 
+        /// To fetch session analytics data for unit testing 
         /// </summary>
-        /// <returns>Returns Client Session Manager Object</returns>
-        public IUXClientSessionManager GetClientSM()
-        {
-            return _clientSM;
-        }
-
-        /// <summary>
-        /// To fetch session analytics object for unit testing 
-        /// </summary>
-        /// <returns>Returns Session Anaytics Object</returns>
+        /// <returns>Current Session Anaytics</returns>
         public SessionAnalytics GetSessionAnalytics()
         {
             return _sessionAnalytics;
         }
 
         /// <summary>
-        /// Fetches the latest telemetry data and discussion summary from the session manager 
+        /// Fetches the latest telemetry data and 
+        /// discussion summary from the session manager 
         /// Keeps the values of Dashboard up-to-date
         /// </summary>
         public void UpdateVM()
@@ -97,11 +91,13 @@ namespace Client.ViewModel
             lock (this)
             {
                 _clientSM.GetSummary();
-                Debug.WriteLine("[UX] Obtained the latest summary");
+                //Debug.WriteLine("[UX] Obtained the latest summary");
+                Trace.WriteLine("[UX] Obtained the latest summary");
+
 
                 _clientSM.GetAnalytics();
-                Debug.WriteLine("[UX] Obtained the latest analytics data");
-
+                //Debug.WriteLine("[UX] Obtained the latest analytics data");
+                Trace.WriteLine("[UX] Obtained the latest analytics data");
 
                 if (_sessionAnalytics.chatCountForEachUser.Count != 0)
                 {
@@ -129,8 +125,8 @@ namespace Client.ViewModel
 
                 messagesCount = _messagesCountList.AsQueryable().Sum();
                 participantsCount = _usersList.Count;
-                engagementRate = CalculateEngagementRate();
-
+                engagementRate = CalculateEngagementRate(_messagesCountList, _usersList);
+                Trace.WriteLine("[UX] Rendered the latest analytics data");
             }
         }
 
@@ -140,25 +136,31 @@ namespace Client.ViewModel
         /// The logic is to deduce the fraction of attendees with 
         /// atleast one message sent in the current discussion
         /// </summary>
+        /// <param name="usersList">List of users in the session</param>
+        /// <param name="messagesCountList">List of messages count per user</param>
         /// <returns>String represting the engagement rate</returns>
-        private string CalculateEngagementRate()
+        public string CalculateEngagementRate(List<int> usersList, List<int> messagesCountList)
         {
 
-            //Trace.Assert(participantsCount >= 0);
-
-            if (participantsCount == 0)
+            Trace.Assert(participantsCount >= 0);
+            if (usersList.Count == 0)
             {
                 return "0%";
             }
-            
-            float activeMembers = _messagesCountList.Count(i => i > 0);
+
+            float activeMembers = messagesCountList.Count(i => i > 0);
             //Debug.WriteLine("Active Members:{0}, Participants: {1}", activeMembers, participantsCount);
-            float engagementRate = (activeMembers / participantsCount) * 100;
+            float engagementRate = (float)(activeMembers / usersList.Count) * 100;
             //Debug.WriteLine("Engagement Rate: {0}", engagementRate);
             return engagementRate.ToString("0") + "%";
         }
 
-        private void OnSummaryChanged(string latestSummary)
+        /// <summary>
+        /// Updates chat summary with 
+        /// the latest obtained summary from session manager
+        /// </summary>
+        /// <param name="latestSummary">Latest Summary Value</param>
+        public void OnSummaryChanged(string latestSummary)
         {
             lock (this)
             {
@@ -167,17 +169,26 @@ namespace Client.ViewModel
             }
         }
 
-        private void OnAnalyticsChanged(SessionAnalytics latestAnalytics)
+        /// <summary>
+        /// Updates the analytics values with the
+        /// latest obtained analytics from session manager
+        /// </summary>
+        /// <param name="latestAnalytics">Latest Analytics Value</param>
+        public void OnAnalyticsChanged(SessionAnalytics latestAnalytics)
         {
             lock (this)
             {
                 if (latestAnalytics != null)
                     _sessionAnalytics = latestAnalytics;
                 else
-                    Debug.WriteLine("[UX]: Null Analytics returned");
+                    Trace.WriteLine("[UX] Null Analytics returned");
             }
         }
 
+        /// <summary>
+        /// Notifies view when property value changes
+        /// </summary>
+        /// <param name="property">Target Property</param>
         private void OnPropertyChanged(string property)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
@@ -185,18 +196,7 @@ namespace Client.ViewModel
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        /// <summary>
-        /// The summary of discussion done in the meeting so far
-        /// </summary>
-        public string chatSummary
-        {
-            get { return _chatSummary; }
-            set
-            {
-                _chatSummary = value;
-                OnPropertyChanged(nameof(chatSummary));
-            }
-        }
+
 
         /// <summary>
         /// Users count list
@@ -219,6 +219,18 @@ namespace Client.ViewModel
         //public ObservableCollection<string> usersList { get; private set; }
         public ObservableCollection<string> usersList { get; private set; }
 
+        /// <summary>
+        /// The summary of discussion done in the meeting so far
+        /// </summary>
+        public string chatSummary
+        {
+            get { return _chatSummary; }
+            set
+            {
+                _chatSummary = value;
+                OnPropertyChanged(nameof(chatSummary));
+            }
+        }
 
         /// <summary>
         /// Total number of messages sent in chat during the session
@@ -258,14 +270,12 @@ namespace Client.ViewModel
         /// </summary>
         public string engagementRate
         {
-            get { return _engagementRate = CalculateEngagementRate(); }
-            set
+            get { return CalculateEngagementRate(_messagesCountList, _usersList); }
+            private set
             {
-                _engagementRate = CalculateEngagementRate();
                 OnPropertyChanged(nameof(engagementRate));
             }
         }
-
 
         private string _chatSummary;
         private List<DateTime> _timestampList;
@@ -277,7 +287,6 @@ namespace Client.ViewModel
         private int _messagesCount;
         private int _participantsCount;
         private int _recentlyJoined;
-        private string _engagementRate;
 
         private IUXClientSessionManager _clientSM;
         private SessionAnalytics _sessionAnalytics;
