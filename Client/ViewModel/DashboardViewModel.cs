@@ -39,6 +39,7 @@ namespace Client.ViewModel
         {
 
             _clientSM = SessionManagerFactory.GetClientSessionManager();
+            Trace.Assert(_clientSM != null, "[UX] Client session manager is null");
 
             _sessionAnalytics = new SessionAnalytics();
             _sessionAnalytics.chatCountForEachUser = new Dictionary<int, int>();
@@ -98,12 +99,12 @@ namespace Client.ViewModel
                 //Debug.WriteLine("[UX] Obtained the latest analytics data");
                 Trace.WriteLine("[UX] Obtained the latest analytics data");
 
-                if (_sessionAnalytics.chatCountForEachUser.Count != 0) { 
+                if (_sessionAnalytics.chatCountForEachUser.Count > 0) { 
                     _usersList = new List<int>(this._sessionAnalytics.chatCountForEachUser.Keys);
                     _messagesCountList = new List<int>(this._sessionAnalytics.chatCountForEachUser.Values);
                 }
 
-                if (_sessionAnalytics.userCountAtAnyTime.Count != 0)
+                if (_sessionAnalytics.userCountAtAnyTime.Count > 0)
                 {
                     _timestampList = new List<DateTime>(this._sessionAnalytics.userCountAtAnyTime.Keys);
                     _usersCountList = new List<int>(this._sessionAnalytics.userCountAtAnyTime.Values);
@@ -134,11 +135,18 @@ namespace Client.ViewModel
         public string CalculateEngagementRate(List<int> usersList, List<int> messagesCountList)
         {
 
-            Trace.Assert(participantsCount >= 0);
+            if (usersList == null || messagesCountList == null)
+            {
+                return "0%";
+            }
+
             if (usersList.Count == 0)
             {
                 return "0%";
             }
+
+            Trace.Assert(usersList != null, "[UX] Null parameter usersList in CalculateEngagementRate");
+            Trace.Assert(messagesCountList != null, "[UX] Null parameter messagesCountList in CalculateEngagementRate");
 
             float activeMembers = messagesCountList.Count(i => i > 0);
             //Debug.WriteLine("Active Members:{0}, Participants: {1}", activeMembers, participantsCount);
@@ -170,7 +178,10 @@ namespace Client.ViewModel
         {
             lock (this)
             {
-                _sessionAnalytics = latestAnalytics;
+                if (latestAnalytics != null)
+                    _sessionAnalytics = latestAnalytics;
+                else
+                    Trace.WriteLine("[UX] Received Null session analytics object");
             }
         }
 
