@@ -10,7 +10,6 @@
 using Client.ViewModel;
 using Dashboard.Server.Telemetry;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -65,7 +64,6 @@ namespace Testing.UX.Dashboard
             _expectedAnalytics = Utils.GenerateAnalyticsInstance(instanceType);
 
             // Act
-            //_viewModel.OnAnalyticsChanged(sampleAnalytics);
             _viewModel.OnAnalyticsChanged(_expectedAnalytics);
             _sessionAnalytics = _viewModel.GetSessionAnalytics();
 
@@ -82,6 +80,7 @@ namespace Testing.UX.Dashboard
         /// Tests the summary updates
         /// </summary>
         [Test]
+        [TestCase(null)]
         [TestCase("")]
         [TestCase("This is some non-null summary text!")]
         public void OnSummaryChanged_ShouldUpdateSummaryText(string sampleSummary)
@@ -98,14 +97,12 @@ namespace Testing.UX.Dashboard
         /// </summary>
         /// <param name="expectedRate">Expected engagement rate</param>
         [Test]
-        [TestCase("Initial")]
         [TestCase("0%")]
         [TestCase("50%")]
         [TestCase("67%")]
         [TestCase("100%")]
         public void CalculateEngamentRate_ShouldReturnCorrectRate(string expectedRate)
         {
-
             // Arrange
             _expectedAnalytics = Utils.GenerateAnalyticsForEngagementRate(expectedRate);
 
@@ -139,6 +136,38 @@ namespace Testing.UX.Dashboard
             Assert.AreEqual(nameof(_viewModel.chatSummary), receivedEvents[0]);
             Assert.AreEqual(nameof(_viewModel.messagesCount), receivedEvents[1]);
             Assert.AreEqual(nameof(_viewModel.participantsCount), receivedEvents[3]);
+        }
+
+        [Test]
+        public void CalculateEngangeMentRate_NullContext()
+        {
+            // Arrange
+            _expectedAnalytics = Utils.GenerateAnalyticsForEngagementRate("100%");
+
+            // Act
+            _viewModel.OnAnalyticsChanged(_expectedAnalytics);
+            _sessionAnalytics = _viewModel.GetSessionAnalytics();
+
+            // Assert
+            Assert.AreEqual("0%", _viewModel.CalculateEngagementRate(null,
+                new List<int>(_sessionAnalytics.chatCountForEachUser.Values)));
+            Assert.AreEqual("0%", _viewModel.CalculateEngagementRate(
+                new List<int>(_sessionAnalytics.chatCountForEachUser.Keys),null));
+            Assert.AreEqual("0%", _viewModel.CalculateEngagementRate(null,null));
+        }
+
+        [Test]
+        public void OnAnalyticsChanged_NullContext()
+        {
+            // Arrange
+            _expectedAnalytics = null;
+
+            // Act
+            _viewModel.OnAnalyticsChanged(_expectedAnalytics);
+            _sessionAnalytics = _viewModel.GetSessionAnalytics();
+
+            // Assert
+            Assert.NotNull(_sessionAnalytics);
         }
 
         private DashboardViewModel _viewModel;

@@ -23,15 +23,14 @@ namespace Testing.UX.Dashboard
         /// <returns>Session analytics object</returns>
         public static SessionAnalytics GenerateAnalyticsForEngagementRate(string rate)
         {
+            _sampleAnalytics = new();
             if (rate == "0%")
             {
-                _sampleAnalytics = new();
                 _sampleAnalytics.chatCountForEachUser = new();
                 return _sampleAnalytics;
             }
             else if (rate == "50%")
             {
-                _sampleAnalytics = new();
                 _sampleAnalytics.chatCountForEachUser = new();
                 _sampleAnalytics.chatCountForEachUser.Add(1, 10);
                 _sampleAnalytics.chatCountForEachUser.Add(2, 0);
@@ -39,7 +38,6 @@ namespace Testing.UX.Dashboard
             }
             else if (rate == "67%")
             {
-                _sampleAnalytics = new();
                 _sampleAnalytics.chatCountForEachUser = new();
                 _sampleAnalytics.chatCountForEachUser.Add(1, 5);
                 _sampleAnalytics.chatCountForEachUser.Add(2, 5);
@@ -48,12 +46,11 @@ namespace Testing.UX.Dashboard
             }
             else if (rate == "100%")
             {
-                _sampleAnalytics = new();
                 _sampleAnalytics.chatCountForEachUser = new();
                 _sampleAnalytics.chatCountForEachUser.Add(1, 5);
                 return _sampleAnalytics;
             }
-            return null;
+            return _sampleAnalytics;
         }
 
         public static SessionAnalytics GenerateAnalyticsInstance(string instanceType)
