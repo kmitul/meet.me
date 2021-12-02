@@ -77,6 +77,23 @@ namespace Testing.UX.Dashboard
         }
 
         /// <summary>
+        /// Tests the null context of OnAnalyticsChanged
+        /// </summary>
+        [Test]
+        public void OnAnalyticsChanged_NullContext()
+        {
+            // Arrange
+            _expectedAnalytics = null;
+
+            // Act
+            _viewModel.OnAnalyticsChanged(_expectedAnalytics);
+            _sessionAnalytics = _viewModel.GetSessionAnalytics();
+
+            // Assert
+            Assert.NotNull(_sessionAnalytics);
+        }
+
+        /// <summary>
         /// Tests the summary updates
         /// </summary>
         [Test]
@@ -116,6 +133,30 @@ namespace Testing.UX.Dashboard
                 new List<int>(_sessionAnalytics.chatCountForEachUser.Values)));
         }
 
+        /// <summary>
+        /// Tests null context of CalculateEngagementRate
+        /// </summary>
+        [Test]
+        public void CalculateEngangeMentRate_NullContext()
+        {
+            // Arrange
+            _expectedAnalytics = Utils.GenerateAnalyticsForEngagementRate("100%");
+
+            // Act
+            _viewModel.OnAnalyticsChanged(_expectedAnalytics);
+            _sessionAnalytics = _viewModel.GetSessionAnalytics();
+
+            // Assert
+            Assert.AreEqual("0%", _viewModel.CalculateEngagementRate(null,
+                new List<int>(_sessionAnalytics.chatCountForEachUser.Values)));
+            Assert.AreEqual("0%", _viewModel.CalculateEngagementRate(
+                new List<int>(_sessionAnalytics.chatCountForEachUser.Keys), null));
+            Assert.AreEqual("0%", _viewModel.CalculateEngagementRate(null, null));
+        }
+
+        /// <summary>
+        /// Tests the events raised on property changed
+        /// </summary>
         [Test]
         public void OnPropertyChanged_ShouldRaiseEvent()
         {
@@ -132,43 +173,14 @@ namespace Testing.UX.Dashboard
             _viewModel.participantsCount += 5;
 
             // Assert
-            Assert.AreEqual(3, receivedEvents.Count);
+            Assert.AreEqual(4, receivedEvents.Count);
             Assert.AreEqual(nameof(_viewModel.chatSummary), receivedEvents[0]);
             Assert.AreEqual(nameof(_viewModel.messagesCount), receivedEvents[1]);
-            Assert.AreEqual(nameof(_viewModel.participantsCount), receivedEvents[3]);
+            Assert.AreEqual(nameof(_viewModel.participantsCount), receivedEvents[2]);
+            Assert.AreEqual(nameof(_viewModel.engagementRate), receivedEvents[3]);
+
         }
 
-        [Test]
-        public void CalculateEngangeMentRate_NullContext()
-        {
-            // Arrange
-            _expectedAnalytics = Utils.GenerateAnalyticsForEngagementRate("100%");
-
-            // Act
-            _viewModel.OnAnalyticsChanged(_expectedAnalytics);
-            _sessionAnalytics = _viewModel.GetSessionAnalytics();
-
-            // Assert
-            Assert.AreEqual("0%", _viewModel.CalculateEngagementRate(null,
-                new List<int>(_sessionAnalytics.chatCountForEachUser.Values)));
-            Assert.AreEqual("0%", _viewModel.CalculateEngagementRate(
-                new List<int>(_sessionAnalytics.chatCountForEachUser.Keys),null));
-            Assert.AreEqual("0%", _viewModel.CalculateEngagementRate(null,null));
-        }
-
-        [Test]
-        public void OnAnalyticsChanged_NullContext()
-        {
-            // Arrange
-            _expectedAnalytics = null;
-
-            // Act
-            _viewModel.OnAnalyticsChanged(_expectedAnalytics);
-            _sessionAnalytics = _viewModel.GetSessionAnalytics();
-
-            // Assert
-            Assert.NotNull(_sessionAnalytics);
-        }
 
         private DashboardViewModel _viewModel;
         // Actual analytics
