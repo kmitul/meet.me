@@ -29,7 +29,6 @@ namespace Client.ViewModel
     /// </summary>
     public class DashboardViewModel : INotifyPropertyChanged
     {
-
         /// <summary>
         /// Constructs the intial setup
         /// subscribes to Client Session Manager 
@@ -49,9 +48,11 @@ namespace Client.ViewModel
             _clientSM.SummaryCreated += (latestSummary) => OnSummaryChanged(latestSummary);
             _clientSM.AnalyticsCreated += (latestAnalytics) => OnAnalyticsChanged(latestAnalytics);
 
+            _sessionData = DashboardSessionData.GetInstance();
+
             Trace.WriteLine("[UX] Dashboard subscribed to Client Session Manager");
 
-            //// Default Setup
+            // Default Setup
             _chatSummary = "Refresh to get the latest stats!";
             _usersList = new List<int>() { 0 };
             _messagesCountList = new List<int>() { 0 };
@@ -64,6 +65,7 @@ namespace Client.ViewModel
             participantsCount = _usersList.Count;
             engagementRate = CalculateEngagementRate(_messagesCountList, _usersList);
 
+            usernamesList = new() { "Refresh to get the latest stats!" };
             usersList = new ObservableCollection<string>((IEnumerable<string>)_usersList.ConvertAll(val => new string(val.ToString())));
             messagesCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_messagesCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
             timestampList = new ObservableCollection<string>((IEnumerable<string>)_timestampList.ConvertAll(val => new string(val.ToString("T"))));
@@ -88,15 +90,12 @@ namespace Client.ViewModel
         /// </summary>
         public void UpdateVM()
         {
-
             lock (this)
             {
                 _clientSM.GetSummary();
-                //Debug.WriteLine("[UX] Obtained the latest summary");
                 Trace.WriteLine("[UX] Obtained the latest summary");
 
                 _clientSM.GetAnalytics();
-                //Debug.WriteLine("[UX] Obtained the latest analytics data");
                 Trace.WriteLine("[UX] Obtained the latest analytics data");
 
                 if (_sessionAnalytics.chatCountForEachUser.Count > 0) { 
@@ -110,12 +109,17 @@ namespace Client.ViewModel
                     _usersCountList = new List<int>(this._sessionAnalytics.userCountAtAnyTime.Values);
                 }
 
+                _latestSessionData =  _sessionData.UpdateSessionData(_latestSessionData);
+
                 _insincereMembers = _sessionAnalytics.insincereMembers;
                 messagesCount = _messagesCountList.AsQueryable().Sum();
-                participantsCount = _usersList.Count;
+                participantsCount = _latestSessionData.users.Count;
                 engagementRate = CalculateEngagementRate(_messagesCountList, _usersList);
 
-                usersList = new ObservableCollection<string>((IEnumerable<string>)_usersList.ConvertAll(val => new string(val.ToString())));
+                UpdateUserNames(_latestSessionData, usernamesList);
+
+                //usersList = new ObservableCollection<string>((IEnumerable<string>)_usersList.ConvertAll(val => new string(val.ToString())));
+                usersList = usernamesList;
                 messagesCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_messagesCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
                 timestampList = new ObservableCollection<string>((IEnumerable<string>)_timestampList.ConvertAll(val => new string(val.ToString("T"))));
                 usersCountList = new ChartValues<ObservableValue>((IEnumerable<ObservableValue>)_usersCountList.ConvertAll(x => new ObservableValue(x)).AsChartValues());
@@ -185,6 +189,25 @@ namespace Client.ViewModel
             }
         }
 
+        private void UpdateUserNames(SessionData session, ObservableCollection<string> usernamesList)
+        {
+            if (session != null)
+            {
+                usernamesList.Clear();
+                foreach (UserData user in session.users)
+                {
+                    foreach (int key in _sessionAnalytics.chatCountForEachUser.Keys)
+                    {
+                        if (key == user.userID)
+                        {
+                            this.usernamesList.Add(user.username);
+                        }
+                    }
+                }
+            }
+            Trace.WriteLine("[UX] Updated the users list");
+        }      
+        
         /// <summary>
         /// Notifies view when property value changes
         /// </summary>
@@ -275,6 +298,10 @@ namespace Client.ViewModel
             }
         }
 
+        public ObservableCollection<string> usernamesList { get; private set; }
+
+        private SessionData _latestSessionData;
+        private DashboardSessionData _sessionData;
         private string _chatSummary;
         private List<DateTime> _timestampList;
         private List<int> _usersCountList;

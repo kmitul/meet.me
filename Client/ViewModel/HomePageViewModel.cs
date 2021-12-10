@@ -28,7 +28,9 @@ namespace Client.ViewModel
             users = new List<UserViewData>();
             client = new UserData();
             client.userID = -1;
+            _dashboardSessionData = DashboardSessionData.GetInstance();
         }
+
         /// <summary>
         /// Constructor for testing
         /// </summary>
@@ -122,5 +124,10 @@ namespace Client.ViewModel
         /// Underlying data model.
         /// </summary>
         private IUXClientSessionManager _model;
+
+        /// <summary>
+        /// To listen session changes in Dashboard background 
+        /// </summary>
+        private DashboardSessionData _dashboardSessionData;
     }
 }
