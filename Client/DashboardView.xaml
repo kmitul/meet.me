@@ -211,12 +211,12 @@
                                 <lvc:Axis Title="Users Count" MinValue="0">
 
                                     <lvc:Axis.Sections>
-                                        <lvc:AxisSection Value="5" SectionWidth="10" Label="Good">
+                                        <lvc:AxisSection Value="3" SectionWidth="10" Label="Good Attendance">
                                             <lvc:AxisSection.Fill>
                                                 <SolidColorBrush Color="LightGreen" Opacity=".4"></SolidColorBrush>
                                             </lvc:AxisSection.Fill>
                                         </lvc:AxisSection>
-                                        <lvc:AxisSection Value="0" SectionWidth="5" Label="Bad">
+                                        <lvc:AxisSection Value="0" SectionWidth="3" Label="Poor Attendance">
                                             <lvc:AxisSection.Fill>
                                                 <SolidColorBrush Color="#FF8585" Opacity=".4"></SolidColorBrush>
                                             </lvc:AxisSection.Fill>
@@ -258,7 +258,7 @@
                             </lvc:CartesianChart.Series>
                             <lvc:CartesianChart.AxisX>
                                 <lvc:Axis Title="Users" Labels="{Binding usersList}" 
-                                          MinValue="0" MaxValue="{Binding participantsCount}">
+                                          MinValue="0">
                                     <lvc:Axis.Separator>
                                         <lvc:Separator Step="2"/>
                                     </lvc:Axis.Separator>
